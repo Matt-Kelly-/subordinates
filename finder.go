@@ -1,3 +1,22 @@
+/*
+   Package subordinates provides a means for finding subordinates of a user.
+   Each user has a role, and each role may have a parent role.
+   User A is subordinate to user B if user B's role is an ancestor of user A's role.
+
+   Usage
+   1. Create a new subordinate finder with NewFinder()
+   2. Call SetRoles() on the finder, passing a slice of roles
+   3. Call SetUsers() on the finder, passing a slice of users
+   4. Call GetSubordinates() on the finder, passing a user ID
+   NB. Steps 2 and 3 can be done in any order
+
+   GetSubordinates returns a slice of subordinate users, or a nil slice and an error if:
+   - The target user is not found (ErrTargetUserNotFound)
+   - The role of the target user, or any other user, is not found (ErrRoleNotFound)
+
+   Subordinate finder instances are reusable - you can call any function on Finder as many times as you like.
+*/
+
 package subordinates
 
 import (
