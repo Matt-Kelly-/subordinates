@@ -110,4 +110,10 @@ func TestGetSubordinatesWithSampleData(t *testing.T) {
 			},
 		})
 	})
+
+	t.Run("user has no subordinates", func(t *testing.T) {
+		results, err := finder.GetSubordinates(2)
+		require.Nil(t, err)
+		require.Empty(t, results)
+	})
 }
