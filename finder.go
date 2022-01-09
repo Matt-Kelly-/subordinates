@@ -67,8 +67,9 @@ func (f *Finder) GetSubordinates(userId int) ([]User, error) {
 
 	// Get all users with roles that are subordinate to the target user's role
 	var results []User
+	memo := make(map[int]bool)
 	for _, user := range f.users {
-		subordinate, err := f.isRoleSubordinate(user.Role, targetUser.Role)
+		subordinate, err := f.isRoleSubordinate(user.Role, targetUser.Role, memo)
 		if err != nil {
 			return nil, err
 		}
@@ -81,10 +82,16 @@ func (f *Finder) GetSubordinates(userId int) ([]User, error) {
 
 // Check if the role with checkRoleId is subordinate to the role with againstRoleId
 // Returns an error (ErrRoleNotFound) if a role is not found
-func (f *Finder) isRoleSubordinate(checkRoleId, againstRoleId int) (bool, error) {
+func (f *Finder) isRoleSubordinate(checkRoleId, againstRoleId int, memo map[int]bool) (bool, error) {
 	// A role cannot be subordinate to itself
 	if checkRoleId == againstRoleId {
 		return false, nil
+	}
+
+	// Return a memoized result if there is one
+	memoResult, found := memo[checkRoleId]
+	if found {
+		return memoResult, nil
 	}
 
 	// Get the role to check
@@ -93,16 +100,22 @@ func (f *Finder) isRoleSubordinate(checkRoleId, againstRoleId int) (bool, error)
 		return false, fmt.Errorf("%w: %v", ErrRoleNotFound, checkRoleId)
 	}
 
-	// A role is subordinate to its parent
+	var result bool
 	if checkRole.Parent == againstRoleId {
-		return true, nil
+		// A role is subordinate to its parent
+		result = true
+	} else if checkRole.Parent > 0 {
+		// If there is a parent role, check against that
+		var err error
+		result, err = f.isRoleSubordinate(checkRole.Parent, againstRoleId, memo)
+		if err != nil {
+			return false, err
+		}
 	}
-
-	// If there is a parent role, check against that
-	if checkRole.Parent > 0 {
-		return f.isRoleSubordinate(checkRole.Parent, againstRoleId)
-	}
-
 	// Otherwise it is not subordinate
-	return false, nil
+
+	// Memoize result
+	memo[checkRoleId] = result
+
+	return result, nil
 }
