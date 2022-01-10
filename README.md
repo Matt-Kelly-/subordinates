@@ -58,3 +58,13 @@ In the worst case, the tree of roles degenerates to a linked list so we must che
 ![list-users](https://user-images.githubusercontent.com/6522959/148671253-a8df50ba-7570-4514-8294-a66c52bab3b2.png)
 
 ![list-roles](https://user-images.githubusercontent.com/6522959/148671268-1fa08104-9a83-42f9-a588-bc662bf148bb.png)
+
+### Enhancement
+
+In the course of checking for subordinate roles, we may end up checking the same role multiple times. Since there are shared parent roles, this is a case of solving overlapping sub-problems. I used a dynamic programming technique to memoize the results of subordinate checks for future reference. This change is visible on the [memoize branch](https://github.com/Matt-Kelly-/subordinates/tree/memoize). This trades memory for speed, using additional space proportional to the number of distinct roles examined.
+
+In tests the memoization enhancement is most effective when the number of users is greater than the number of roles, because it's more likely that users will have the same role or same ancestor roles. It is not effective when the number of users is small, due to the overhead. It seems unlikely that an organisation would have more roles than users, so this enhancement would probably be worthwhile for organisations with a reasonable number of users.
+
+![memoized-tree-users](https://user-images.githubusercontent.com/6522959/148742165-0c0ad21c-17d0-4871-8783-a8febf7be1ac.png)
+
+![memoized-tree-roles](https://user-images.githubusercontent.com/6522959/148742186-ab2c5739-24a7-48d6-9aa6-318f9b6fbcd7.png)
